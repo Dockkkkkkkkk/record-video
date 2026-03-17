@@ -1,0 +1,13 @@
+{
+  "name": "record-video-audio-tool",
+  "version": "1.0.0",
+  "description": "Local desktop audio recording tool for segmented voice projects.",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "dependencies": {
+    "electron": "^37.4.0",
+    "ffmpeg-static": "^5.2.0"
+  }
+}
