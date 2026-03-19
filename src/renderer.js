@@ -887,6 +887,8 @@ async function init() {
   renderProjectDetails();
 }
 
-init().catch((error) => {
-  console.error(error);
-});
+window.__voiceStripBoot = () => {
+  init().catch((error) => {
+    console.error(error);
+  });
+};

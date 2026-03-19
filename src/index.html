@@ -23,8 +23,8 @@
         <button class="create-project-button" id="openCreateProjectButton">
           <span class="button-icon">+</span>
           <div class="button-copy">
-            <span>新建录音项目</span>
-            <small>选择格式，立即开始</small>
+            <span>新建项目</span>
+            <small>录音项目和剪辑打包项目都从这里创建</small>
           </div>
         </button>
 
@@ -43,7 +43,7 @@
           <div class="hero-copy">
             <p class="eyebrow">Workflow</p>
             <h2 id="projectTitle">先创建一个项目</h2>
-            <p id="projectSubtitle">每个项目支持分段录制、试听、留空槽位、槽位删除上移，以及随时合并导出。</p>
+            <p id="projectSubtitle">你可以创建录音项目，也可以创建带音频和画面素材的打包项目。</p>
           </div>
           <div class="hero-stats">
             <div class="stat-card">
@@ -51,11 +51,11 @@
               <strong id="projectFormat">-</strong>
             </div>
             <div class="stat-card">
-              <span>已录制</span>
+              <span>已填分片</span>
               <strong id="recordedCount">0</strong>
             </div>
             <div class="stat-card">
-              <span>总槽位</span>
+              <span>总分片</span>
               <strong id="slotCount">0</strong>
             </div>
           </div>
@@ -66,19 +66,19 @@
             <div class="panel-header">
               <div>
                 <p class="eyebrow">Segments</p>
-                <h3>音频槽位</h3>
+                <h3>分片列表</h3>
               </div>
               <div class="panel-tools">
                 <button class="primary ghost compact-button" id="addSlotButton" disabled>
                   <span class="button-icon">+</span>
-                  <span class="button-label">新增槽位</span>
+                  <span class="button-label">新增分片</span>
                 </button>
-                <button class="icon-button subtle" id="toggleSlotsButton" type="button" title="收起音频槽栏"><</button>
+                <button class="icon-button subtle" id="toggleSlotsButton" type="button" title="收起分片栏"><</button>
               </div>
             </div>
 
             <div class="slot-list" id="slotList">
-              <div class="empty-state">左侧新建或选择一个项目后，这里会展示所有音频槽位。</div>
+              <div class="empty-state">左侧新建或选择一个项目后，这里会展示所有分片。</div>
             </div>
           </div>
           <div class="slot-resizer" id="slotResizer" aria-hidden="true"></div>
@@ -87,14 +87,14 @@
             <div class="panel-header">
               <div>
                 <p class="eyebrow">Recorder</p>
-                <h3>当前槽位</h3>
+                <h3>当前分片</h3>
               </div>
               <div class="selection-badge" id="selectionBadge">未选择</div>
             </div>
 
-            <section class="record-card">
+            <section class="record-card" id="recordCard">
               <label class="field">
-                <span>文件标题</span>
+                <span>分片标题</span>
                 <input id="slotTitleInput" type="text" placeholder="例如：开场白、第一段、转场" disabled />
               </label>
 
@@ -122,9 +122,9 @@
                 <audio id="draftAudio" controls></audio>
               </div>
 
-              <div class="preview-block">
+              <div class="preview-block" id="savedAudioBlock">
                 <div>
-                  <p class="preview-title">当前槽位已保存音频</p>
+                  <p class="preview-title">当前分片已保存音频</p>
                   <p class="preview-desc" id="savedAudioStatus">保存后的片段会显示在这里，可随时回听。</p>
                 </div>
                 <audio id="savedAudio" controls></audio>
@@ -133,10 +133,47 @@
 
             <section class="segment-actions">
               <button class="primary ghost" id="deleteAudioButton" disabled>删除已录音频</button>
-              <button class="primary ghost danger" id="deleteSlotButton" disabled>删除音频槽</button>
+              <button class="primary ghost danger" id="deleteSlotButton" disabled>删除分片</button>
             </section>
 
-            <section class="merge-card">
+            <section class="bundle-card" id="bundleAssetsCard" hidden>
+              <div class="merge-head">
+                <div>
+                  <p class="eyebrow">Assets</p>
+                  <h3>音频与画面素材</h3>
+                </div>
+              </div>
+
+              <div class="bundle-grid">
+                <section class="asset-card">
+                  <div class="asset-head">
+                    <div>
+                      <p class="preview-title">音频素材</p>
+                      <p class="preview-desc">可以录音保存，也可以一次上传多个音频文件。</p>
+                    </div>
+                    <button class="primary ghost" id="uploadAudioButton" type="button">上传音频</button>
+                  </div>
+                  <div class="asset-list" id="bundleAudioList">
+                    <div class="empty-state">当前分片还没有音频素材。</div>
+                  </div>
+                </section>
+
+                <section class="asset-card">
+                  <div class="asset-head">
+                    <div>
+                      <p class="preview-title">画面素材</p>
+                      <p class="preview-desc">支持图片和视频混合上传，导出时按顺序重命名。</p>
+                    </div>
+                    <button class="primary ghost" id="uploadVisualButton" type="button">上传画面</button>
+                  </div>
+                  <div class="asset-list" id="bundleVisualList">
+                    <div class="empty-state">当前分片还没有画面素材。</div>
+                  </div>
+                </section>
+              </div>
+            </section>
+
+            <section class="merge-card" id="mergeCard">
               <div class="merge-head">
                 <div>
                   <p class="eyebrow">Merge</p>
@@ -198,6 +235,39 @@
                 <audio id="mergedAudio" controls></audio>
               </div>
             </section>
+
+            <section class="merge-card" id="bundleExportCard" hidden>
+              <div class="merge-head">
+                <div>
+                  <p class="eyebrow">Bundle</p>
+                  <h3>导出剪辑素材包</h3>
+                </div>
+                <div class="merge-actions">
+                  <button class="primary ghost" id="openProjectFolderButtonBundle" disabled>打开项目目录</button>
+                  <button class="primary ghost" id="openExportFolderButtonBundle" disabled>打开导出目录</button>
+                </div>
+              </div>
+
+              <div class="preview-block merged">
+                <div>
+                  <p class="preview-title">目录结构</p>
+                  <p class="preview-desc">
+                    导出后会按分片建目录，每个分片下包含 <code>audio</code> 和 <code>visual</code> 两个子目录。
+                  </p>
+                </div>
+              </div>
+
+              <div class="merge-buttons">
+                <button class="primary" id="exportBundleButton" disabled>导出剪辑素材包</button>
+              </div>
+
+              <div class="preview-block merged">
+                <div>
+                  <p class="preview-title">导出状态</p>
+                  <p class="preview-desc" id="bundleExportStatus">导出 zip 后，你可以直接把它发给后面的剪辑 agent。</p>
+                </div>
+              </div>
+            </section>
           </div>
         </section>
       </main>
@@ -208,27 +278,41 @@
         <div class="dialog-head">
           <div>
             <p class="eyebrow">New Project</p>
-            <h3>创建录音项目</h3>
+            <h3>创建项目</h3>
           </div>
           <button class="icon-button" id="closeCreateProjectButton" type="button">×</button>
         </div>
 
         <label class="field">
           <span>项目名称</span>
-          <input id="projectNameInput" name="projectName" type="text" maxlength="80" placeholder="例如：品牌故事第一版" required />
+          <input id="projectNameInput" name="projectName" type="text" maxlength="80" placeholder="例如：品牌故事第一条" required />
         </label>
 
         <fieldset class="format-grid">
-          <legend>导出格式</legend>
+          <legend>项目类型</legend>
+          <label class="format-option">
+            <input type="radio" name="projectType" value="audio" checked />
+            <span>录音项目</span>
+            <small>一句一句录音，支持合并试听和导出。</small>
+          </label>
+          <label class="format-option">
+            <input type="radio" name="projectType" value="bundle" />
+            <span>打包项目</span>
+            <small>每个分片管理音频和画面素材，导出给剪辑 agent。</small>
+          </label>
+        </fieldset>
+
+        <fieldset class="format-grid">
+          <legend>录音格式</legend>
           <label class="format-option">
             <input type="radio" name="projectFormat" value="mp3" checked />
             <span>MP3</span>
-            <small>默认格式，体积更轻</small>
+            <small>默认格式，体积更轻。</small>
           </label>
           <label class="format-option">
             <input type="radio" name="projectFormat" value="wav" />
             <span>WAV</span>
-            <small>无压缩，方便后期处理</small>
+            <small>无压缩，方便后期处理。</small>
           </label>
         </fieldset>
 
@@ -239,6 +323,10 @@
       </form>
     </dialog>
 
+    <input id="audioUploadInput" type="file" accept="audio/*" multiple hidden />
+    <input id="visualUploadInput" type="file" accept="image/*,video/*" multiple hidden />
+
     <script src="./renderer.js"></script>
+    <script src="./renderer-extended.js"></script>
   </body>
 </html>

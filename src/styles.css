@@ -49,6 +49,10 @@ audio {
   font: inherit;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 .app-shell {
   display: flex;
   gap: 20px;
@@ -157,6 +161,8 @@ h3 {
 .stat-card,
 .record-card,
 .merge-card,
+.bundle-card,
+.asset-card,
 .segment-actions,
 .dialog-card {
   transition: transform 140ms ease, box-shadow 140ms ease, border-color 140ms ease, background 140ms ease;
@@ -295,6 +301,8 @@ h3 {
 .slot-card,
 .record-card,
 .merge-card,
+.bundle-card,
+.asset-card,
 .segment-actions,
 .hero-card {
   border: 1px solid rgba(34, 53, 47, 0.08);
@@ -595,6 +603,82 @@ h3 {
   border: 1px solid rgba(34, 53, 47, 0.08);
 }
 
+.bundle-card {
+  padding: 20px;
+  display: grid;
+  gap: 18px;
+}
+
+.bundle-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.asset-card {
+  padding: 18px;
+  display: grid;
+  gap: 16px;
+}
+
+.asset-head,
+.asset-item-head,
+.asset-item-meta,
+.asset-item-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.asset-list {
+  display: grid;
+  gap: 12px;
+}
+
+.asset-item {
+  border: 1px solid rgba(34, 53, 47, 0.08);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.6);
+  padding: 14px;
+  display: grid;
+  gap: 10px;
+}
+
+.asset-item-title {
+  font-weight: 700;
+}
+
+.asset-item audio {
+  width: 100%;
+}
+
+.secondary-actions {
+  display: inline-flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.micro-button {
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.78);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.micro-button.danger {
+  color: var(--danger);
+}
+
+code {
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(15, 108, 91, 0.08);
+}
+
 .empty-state {
   padding: 28px;
   text-align: center;
@@ -735,6 +819,10 @@ body.slots-collapsed .slot-resizer {
   .app-shell,
   .workspace {
     flex-direction: column;
+  }
+
+  .bundle-grid {
+    grid-template-columns: 1fr;
   }
 
   .workspace {
