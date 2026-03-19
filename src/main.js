@@ -98,6 +98,9 @@ function getProjectTitle(project) {
 
 function detectVisualMediaKind(name = '', mimeType = '') {
   const loweredType = String(mimeType || '').toLowerCase();
+  if (loweredType === 'text/plain') {
+    return 'prompt';
+  }
   if (loweredType.startsWith('image/')) {
     return 'image';
   }
@@ -106,6 +109,9 @@ function detectVisualMediaKind(name = '', mimeType = '') {
   }
 
   const extension = path.extname(String(name || '')).toLowerCase();
+  if (extension === '.txt') {
+    return 'prompt';
+  }
   if (['.png', '.jpg', '.jpeg', '.webp', '.gif', '.bmp', '.svg'].includes(extension)) {
     return 'image';
   }
@@ -134,9 +140,15 @@ function normalizeAssetItems(items, category) {
     fileName: item.fileName || '',
     originalName: item.originalName || item.label || `${category}-${index + 1}`,
     label: item.label || path.parse(item.originalName || `${category}-${index + 1}`).name,
-    source: item.source === 'recorded' ? 'recorded' : 'uploaded',
-    mediaKind: category === 'audio' ? 'audio' : detectVisualMediaKind(item.originalName || item.fileName, item.mimeType),
+    source: item.source === 'recorded' ? 'recorded' : item.source === 'prompt' ? 'prompt' : 'uploaded',
+    mediaKind:
+      category === 'audio'
+        ? 'audio'
+        : item.mediaKind === 'prompt'
+          ? 'prompt'
+          : detectVisualMediaKind(item.originalName || item.fileName, item.mimeType),
     mimeType: item.mimeType || '',
+    textContent: typeof item.textContent === 'string' ? item.textContent : '',
     durationMs: Number(item.durationMs) || null,
     createdAt: item.createdAt || new Date().toISOString(),
     updatedAt: item.updatedAt || new Date().toISOString()
@@ -973,6 +985,52 @@ async function addAssets(projectId, slotId, category, files) {
   return project;
 }
 
+async function addPromptAsset(projectId, slotId, prompt) {
+  const project = await readProject(projectId);
+  if (getProjectType(project) !== 'bundle') {
+    throw new Error('只有打包项目支持添加素材说明。');
+  }
+
+  const slot = project.slots.find((item) => item.id === slotId);
+  if (!slot) {
+    throw new Error('未找到目标分片。');
+  }
+
+  const textContent = String(prompt?.textContent || '').trim();
+  if (!textContent) {
+    throw new Error('素材说明不能为空。');
+  }
+
+  const label = String(prompt?.label || '').trim() || `visual-note-${slot.visualItems.length + 1}`;
+  const assetId = createId();
+  const storedFileName = `visual-${assetId}.txt`;
+  const originalName = `${sanitizeFilenamePart(label)}.txt`;
+  const assetPath = path.join(slotAssetCategoryDir(project.id, slot.id, 'visual'), storedFileName);
+
+  await ensureSlotAssetDirs(project.id, slot.id);
+  await fsp.writeFile(assetPath, textContent, 'utf8');
+
+  slot.visualItems.push({
+    id: assetId,
+    order: slot.visualItems.length + 1,
+    fileName: storedFileName,
+    originalName,
+    label,
+    source: 'prompt',
+    mediaKind: 'prompt',
+    mimeType: 'text/plain',
+    textContent,
+    durationMs: null,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  });
+
+  slot.visualItems = normalizeAssetItems(slot.visualItems, 'visual');
+  slot.updatedAt = new Date().toISOString();
+  await saveProject(project);
+  return project;
+}
+
 async function moveAsset(projectId, slotId, category, assetId, direction) {
   const project = await readProject(projectId);
   if (getProjectType(project) !== 'bundle') {
@@ -1278,6 +1336,11 @@ ipcMain.handle('projects:saveRecording', async (_event, payload) => {
 
 ipcMain.handle('projects:addAssets', async (_event, payload) => {
   const project = await addAssets(payload.projectId, payload.slotId, payload.category, payload.files);
+  return serializeProject(project);
+});
+
+ipcMain.handle('projects:addPromptAsset', async (_event, payload) => {
+  const project = await addPromptAsset(payload.projectId, payload.slotId, payload.prompt);
   return serializeProject(project);
 });
 

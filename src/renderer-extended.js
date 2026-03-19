@@ -7,9 +7,16 @@ Object.assign(elements, {
   bundleAudioList: document.querySelector('#bundleAudioList'),
   bundleVisualList: document.querySelector('#bundleVisualList'),
   uploadAudioButton: document.querySelector('#uploadAudioButton'),
+  addPromptVisualButton: document.querySelector('#addPromptVisualButton'),
   uploadVisualButton: document.querySelector('#uploadVisualButton'),
   audioUploadInput: document.querySelector('#audioUploadInput'),
   visualUploadInput: document.querySelector('#visualUploadInput'),
+  promptAssetDialog: document.querySelector('#promptAssetDialog'),
+  promptAssetForm: document.querySelector('#promptAssetForm'),
+  promptAssetTitleInput: document.querySelector('#promptAssetTitleInput'),
+  promptAssetTextInput: document.querySelector('#promptAssetTextInput'),
+  closePromptAssetButton: document.querySelector('#closePromptAssetButton'),
+  cancelPromptAssetButton: document.querySelector('#cancelPromptAssetButton'),
   bundleExportCard: document.querySelector('#bundleExportCard'),
   exportBundleButton: document.querySelector('#exportBundleButton'),
   bundleExportStatus: document.querySelector('#bundleExportStatus'),
@@ -99,26 +106,34 @@ function extRenderBundleAssetList(items, category) {
   }
 
   return items
-    .map((asset, index) => `
-      <article class="asset-item">
-        <div class="asset-item-head">
-          <span class="asset-item-title">${String(index + 1).padStart(2, '0')} · ${asset.originalName}</span>
-          <span class="chip">${category === 'audio' ? '音频' : asset.mediaKind === 'image' ? '图片' : '视频'}</span>
-        </div>
-        <div class="asset-item-meta">
-          <span>${category === 'audio' ? formatDuration(asset.durationMs) : '素材'}</span>
-          <span>${asset.source === 'recorded' ? '录音生成' : '上传文件'}</span>
-        </div>
-        ${category === 'audio' && asset.fileUrl ? `<audio controls src="${asset.fileUrl}"></audio>` : ''}
-        <div class="asset-item-actions">
-          <div class="secondary-actions">
-            <button class="micro-button" type="button" data-asset-action="up" data-asset-category="${category}" data-asset-id="${asset.id}" ${index === 0 ? 'disabled' : ''}>上移</button>
-            <button class="micro-button" type="button" data-asset-action="down" data-asset-category="${category}" data-asset-id="${asset.id}" ${index === items.length - 1 ? 'disabled' : ''}>下移</button>
+    .map((asset, index) => {
+      const typeLabel =
+        category === 'audio' ? '音频' : asset.mediaKind === 'prompt' ? '说明' : asset.mediaKind === 'image' ? '图片' : '视频';
+      const sourceLabel =
+        asset.source === 'recorded' ? '录音生成' : asset.source === 'prompt' ? '文本说明' : '上传文件';
+
+      return `
+        <article class="asset-item">
+          <div class="asset-item-head">
+            <span class="asset-item-title">${String(index + 1).padStart(2, '0')} · ${asset.originalName}</span>
+            <span class="chip">${typeLabel}</span>
           </div>
-          <button class="micro-button danger" type="button" data-asset-action="delete" data-asset-category="${category}" data-asset-id="${asset.id}">删除</button>
-        </div>
-      </article>
-    `)
+          <div class="asset-item-meta">
+            <span>${category === 'audio' ? formatDuration(asset.durationMs) : '素材'}</span>
+            <span>${sourceLabel}</span>
+          </div>
+          ${category === 'audio' && asset.fileUrl ? `<audio controls src="${asset.fileUrl}"></audio>` : ''}
+          ${category === 'visual' && asset.mediaKind === 'prompt' && asset.textContent ? `<p class="asset-item-note">${asset.textContent}</p>` : ''}
+          <div class="asset-item-actions">
+            <div class="secondary-actions">
+              <button class="micro-button" type="button" data-asset-action="up" data-asset-category="${category}" data-asset-id="${asset.id}" ${index === 0 ? 'disabled' : ''}>上移</button>
+              <button class="micro-button" type="button" data-asset-action="down" data-asset-category="${category}" data-asset-id="${asset.id}" ${index === items.length - 1 ? 'disabled' : ''}>下移</button>
+            </div>
+            <button class="micro-button danger" type="button" data-asset-action="delete" data-asset-category="${category}" data-asset-id="${asset.id}">删除</button>
+          </div>
+        </article>
+      `;
+    })
     .join('');
 }
 
@@ -219,6 +234,9 @@ renderProjectDetails = function () {
     elements.exportMergeButton.disabled = true;
     elements.exportPackageButton.disabled = true;
     elements.exportBundleButton.disabled = true;
+    elements.addPromptVisualButton.disabled = true;
+    elements.uploadVisualButton.disabled = true;
+    elements.uploadAudioButton.disabled = true;
     elements.openProjectFolderButton.disabled = true;
     elements.openExportFolderButton.disabled = true;
     elements.openProjectFolderButtonBundle.disabled = true;
@@ -247,6 +265,9 @@ renderProjectDetails = function () {
   elements.openExportFolderButton.disabled = false;
   elements.openProjectFolderButtonBundle.disabled = false;
   elements.openExportFolderButtonBundle.disabled = false;
+  elements.addPromptVisualButton.disabled = !bundleMode;
+  elements.uploadVisualButton.disabled = !bundleMode;
+  elements.uploadAudioButton.disabled = !bundleMode;
 
   if (bundleMode) {
     elements.bundleAudioList.innerHTML = extRenderBundleAssetList(slot?.audioItems || [], 'audio');
@@ -454,6 +475,39 @@ async function extUploadAssets(category, fileList) {
   await refreshProjects(true);
 }
 
+async function extCreatePromptAsset() {
+  const slot = getActiveSlot();
+  if (!slot) {
+    return;
+  }
+
+  const label = elements.promptAssetTitleInput.value.trim();
+  const textContent = elements.promptAssetTextInput.value.trim();
+  if (!textContent) {
+    throw new Error('素材说明不能为空。');
+  }
+
+  const project = await window.appApi.addPromptAsset({
+    projectId: state.activeProjectId,
+    slotId: slot.id,
+    prompt: {
+      label,
+      textContent
+    }
+  });
+
+  elements.promptAssetDialog.close();
+  elements.promptAssetTitleInput.value = '';
+  elements.promptAssetTextInput.value = '';
+  setActiveProject(project);
+  await refreshProjects(true);
+}
+
+function extResetPromptDialog() {
+  elements.promptAssetTitleInput.value = '';
+  elements.promptAssetTextInput.value = '';
+}
+
 async function extMoveAsset(category, assetId, direction) {
   const slot = getActiveSlot();
   if (!slot) {
@@ -499,12 +553,29 @@ attachEvents = function () {
   elements.openCreateProjectButton.addEventListener('click', () => elements.createProjectDialog.showModal());
   elements.closeCreateProjectButton.addEventListener('click', () => elements.createProjectDialog.close());
   elements.cancelCreateProjectButton.addEventListener('click', () => elements.createProjectDialog.close());
+  elements.addPromptVisualButton.addEventListener('click', () => {
+    extResetPromptDialog();
+    elements.promptAssetDialog.showModal();
+    elements.promptAssetTitleInput.focus();
+  });
+  elements.closePromptAssetButton.addEventListener('click', () => {
+    extResetPromptDialog();
+    elements.promptAssetDialog.close();
+  });
+  elements.cancelPromptAssetButton.addEventListener('click', () => {
+    extResetPromptDialog();
+    elements.promptAssetDialog.close();
+  });
 
   elements.createProjectForm.addEventListener('submit', async (event) => {
     event.preventDefault();
     await withErrorBoundary(async () => {
       await createProjectFromForm(event.currentTarget);
     });
+  });
+  elements.promptAssetForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    await withErrorBoundary(extCreatePromptAsset);
   });
 
   elements.refreshProjectsButton.addEventListener('click', () => withErrorBoundary(async () => refreshProjects(false)));

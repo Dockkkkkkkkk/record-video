@@ -479,7 +479,8 @@ h3 {
   font-weight: 700;
 }
 
-.field input {
+.field input,
+.field textarea {
   width: 100%;
   padding: 14px 16px;
   border-radius: 16px;
@@ -488,7 +489,14 @@ h3 {
   color: var(--text);
 }
 
-.field input:focus {
+.field textarea {
+  min-height: 160px;
+  resize: vertical;
+  line-height: 1.6;
+}
+
+.field input:focus,
+.field textarea:focus {
   outline: 2px solid rgba(15, 108, 91, 0.2);
   border-color: rgba(15, 108, 91, 0.4);
 }
@@ -648,6 +656,13 @@ h3 {
 
 .asset-item-title {
   font-weight: 700;
+}
+
+.asset-item-note {
+  margin: 0;
+  line-height: 1.6;
+  color: var(--muted);
+  white-space: pre-wrap;
 }
 
 .asset-item audio {

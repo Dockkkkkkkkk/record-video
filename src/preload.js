@@ -12,6 +12,7 @@ contextBridge.exposeInMainWorld('appApi', {
   deleteSlot: (payload) => ipcRenderer.invoke('projects:deleteSlot', payload),
   saveRecording: (payload) => ipcRenderer.invoke('projects:saveRecording', payload),
   addAssets: (payload) => ipcRenderer.invoke('projects:addAssets', payload),
+  addPromptAsset: (payload) => ipcRenderer.invoke('projects:addPromptAsset', payload),
   moveAsset: (payload) => ipcRenderer.invoke('projects:moveAsset', payload),
   deleteAsset: (payload) => ipcRenderer.invoke('projects:deleteAsset', payload),
   previewMerge: (projectId) => ipcRenderer.invoke('projects:previewMerge', projectId),

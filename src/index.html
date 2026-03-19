@@ -162,9 +162,12 @@
                   <div class="asset-head">
                     <div>
                       <p class="preview-title">画面素材</p>
-                      <p class="preview-desc">支持图片和视频混合上传，导出时按顺序重命名。</p>
+                      <p class="preview-desc">支持图片、视频和素材说明文本，导出时按顺序重命名。</p>
                     </div>
-                    <button class="primary ghost" id="uploadVisualButton" type="button">上传画面</button>
+                    <div class="secondary-actions">
+                      <button class="primary ghost" id="addPromptVisualButton" type="button">添加素材说明</button>
+                      <button class="primary ghost" id="uploadVisualButton" type="button">上传画面</button>
+                    </div>
                   </div>
                   <div class="asset-list" id="bundleVisualList">
                     <div class="empty-state">当前分片还没有画面素材。</div>
@@ -319,6 +322,39 @@
         <div class="dialog-actions">
           <button class="primary ghost" id="cancelCreateProjectButton" type="button">取消</button>
           <button class="primary" type="submit">创建并进入</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="promptAssetDialog">
+      <form method="dialog" class="dialog-card" id="promptAssetForm">
+        <div class="dialog-head">
+          <div>
+            <p class="eyebrow">Prompt Asset</p>
+            <h3>添加素材说明</h3>
+          </div>
+          <button class="icon-button" id="closePromptAssetButton" type="button">×</button>
+        </div>
+
+        <label class="field">
+          <span>说明标题</span>
+          <input id="promptAssetTitleInput" name="promptAssetTitle" type="text" maxlength="80" placeholder="例如：开场城市远景" />
+        </label>
+
+        <label class="field">
+          <span>素材说明</span>
+          <textarea
+            id="promptAssetTextInput"
+            name="promptAssetText"
+            rows="8"
+            placeholder="粘贴给后续 AI 生成画面素材用的说明文本"
+            required
+          ></textarea>
+        </label>
+
+        <div class="dialog-actions">
+          <button class="primary ghost" id="cancelPromptAssetButton" type="button">取消</button>
+          <button class="primary" type="submit">保存说明</button>
         </div>
       </form>
     </dialog>
